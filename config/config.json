@@ -1,0 +1,23 @@
+{
+  "development": {
+    "username": "postgres.mvbvhmoevdnhvgtayvei",
+    "password": "Kakkada@@2005",
+    "database": "postgres",
+    "host": "aws-1-ap-southeast-1.pooler.supabase.com",
+    "dialect": "postgres"
+  },
+  "test": {
+    "username": "root",
+    "password": null,
+    "database": "database_test",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  },
+  "production": {
+    "username": "root",
+    "password": null,
+    "database": "database_production",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  }
+}
