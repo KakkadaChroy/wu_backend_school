@@ -246,7 +246,6 @@ module.exports = {
      */
     async formStuRecord(req, res) {
         try {
-            // Only select students with status = 'pending'
             const [students] = await sequelize.query(
                 `SELECT id, first_name, last_name 
              FROM "Students" 

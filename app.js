@@ -33,6 +33,9 @@ const gradeRouter = require('./routes/grade');
 const courseRouter = require('./routes/course');
 const scheduleRouter = require('./routes/schedule');
 const stuRecordRouter = require('./routes/stu-record');
+const dashboardRouter = require('./routes/dashboard');
+const userRouter = require('./routes/user');
+const authRouter = require('./routes/auth');
 /**
  * End::Declare routes section
  */
@@ -46,6 +49,9 @@ app.use(`${process.env.BASE_URL}/grades`, gradeRouter);
 app.use(`${process.env.BASE_URL}/courses`, courseRouter);
 app.use(`${process.env.BASE_URL}/schedules`, scheduleRouter);
 app.use(`${process.env.BASE_URL}/student-records`, stuRecordRouter);
+app.use(`${process.env.BASE_URL}/dashboard`, dashboardRouter);
+app.use(`${process.env.BASE_URL}/users`, userRouter);
+app.use(`${process.env.BASE_URL}/auth`, authRouter);
 /**
  * End::Using routes section
  */

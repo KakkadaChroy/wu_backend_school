@@ -1,6 +1,8 @@
 const express = require('express');
 const {createStu, updateStu, getAllStu, getOneStu, deleteStu, formStudent, filterStudent} = require("../controllers/stu.controller");
-const router = express.Router();
+const {verifyToken} = require("../middleware/auth.middleware");
+const router = express.Router()
+router.use(verifyToken);
 
 router.post('/', createStu);
 router.put('/:id', updateStu);
