@@ -2,7 +2,10 @@ const express = require('express');
 const {createStudentRecord, updateStudentRecord, getAllStudentRecords, getOneStudentRecord, deleteStudentRecord, formStuRecord,
     updateStudentStatus
 } = require("../controllers/stu-record.controller");
+const {verifyToken} = require("../middleware/auth.middleware");
 const router = express.Router();
+
+router.use(verifyToken);
 
 router.post('/', createStudentRecord);
 router.put('/:id', updateStudentRecord);
