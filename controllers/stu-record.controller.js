@@ -326,29 +326,25 @@ module.exports = {
      */
     async getOneStudentRecord(req, res) {
         try {
-            const {id} = req.params;
+            const { id } = req.params;
 
             const records = await sequelize.query(
-                `SELECT 
+                `
+            SELECT 
                 sr.id AS record_id,
                 sr.stu_id,
                 sr.major_id,
                 sr.grade_id,
                 sr.course_id,
                 sr.schedule_id,
+                s.status,
                 sr."createdAt",
                 sr."updatedAt",
-                s.id AS student_id,
-                s.stu_id AS student_stu_id,
                 s.first_name,
                 s.last_name,
-                m.id AS major_id,
                 m.major_name,
-                g.id AS grade_id,
                 g.grade_name,
-                c.id AS course_id,
                 c.name AS course_name,
-                sch.id AS schedule_id,
                 sch.schedule_list
             FROM "StudentRecords" sr
             JOIN "Students" s ON sr.stu_id = s.id
@@ -356,8 +352,9 @@ module.exports = {
             JOIN "Grades" g ON sr.grade_id = g.id
             JOIN "Courses" c ON sr.course_id = c.id
             JOIN "Schedules" sch ON sr.schedule_id = sch.id
-            WHERE sr.id = :id;`,
-                {replacements: {id}, type: sequelize.QueryTypes.SELECT}
+            WHERE sr.id = :id;
+            `,
+                { replacements: { id }, type: sequelize.QueryTypes.SELECT }
             );
 
             if (!records || records.length === 0) {
@@ -370,30 +367,21 @@ module.exports = {
 
             const r = records[0];
 
+            // Flattened structure
             const formattedRecord = {
                 id: r.record_id,
-                stu: {
-                    id: r.student_id,
-                    stu_id: r.student_stu_id,
-                    first_name: r.first_name,
-                    last_name: r.last_name
-                },
-                major: {
-                    id: r.major_id,
-                    major_name: r.major_name
-                },
-                grade: {
-                    id: r.grade_id,
-                    grade_name: r.grade_name
-                },
-                course: {
-                    id: r.course_id,
-                    course_name: r.course_name
-                },
-                schedule: {
-                    id: r.schedule_id,
-                    schedule_list: r.schedule_list
-                },
+                stu_id: r.stu_id,
+                first_name: r.first_name,
+                last_name: r.last_name,
+                major: r.major_name,
+                major_id: r.major_id,
+                grade: r.grade_name,
+                grade_id: r.grade_id,
+                course: r.course_name,
+                course_id: r.course_id,
+                schedule: r.schedule_list,
+                schedule_id: r.schedule_id,
+                status: r.status,
                 createdAt: r.createdAt,
                 updatedAt: r.updatedAt
             };
