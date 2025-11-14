@@ -11,7 +11,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(cors({
     origin: [
-        'https://wu-admin-school.vercel.app',
+        'https://wu-uchiha-school.vercel.app',
         'http://localhost:3000',
         'http://localhost:3001',
         'http://localhost:3002',
