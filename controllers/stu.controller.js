@@ -32,9 +32,8 @@ module.exports = {
      */
     async createStu(req, res) {
         try {
-            /**
-             * Begin:: Check validation errors
-             */
+
+            // 1) Validation errors
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
                 return res.status(400).json({
@@ -44,13 +43,8 @@ module.exports = {
                     errors: errors.array(),
                 });
             }
-            /**
-             * End:: Check validation errors
-             */
 
-            /**
-             * Begin:: Extract data from request
-             */
+            // 2) Extract body fields
             const {
                 first_name,
                 last_name,
@@ -61,35 +55,59 @@ module.exports = {
                 age,
                 status,
             } = req.body;
-            /**
-             * End:: Extract data from request
-             */
 
-            /**
-             * Begin:: Get last student ID (stu_id)
-             */
+            // 3) Check if email exists
+            const [emailExist] = await sequelize.query(
+                `SELECT "email" FROM "Students" WHERE "email" = :email LIMIT 1;`,
+                {
+                    replacements: { email },
+                    type: sequelize.QueryTypes.SELECT
+                }
+            );
+
+            if (emailExist) {
+                return res.status(400).json({
+                    status: 'error',
+                    error: true,
+                    message: 'អ៊ីម៉ែលនេះមានរួចហើយ',
+                });
+            }
+
+            // 4) Check if phone exists
+            const [phoneExist] = await sequelize.query(
+                `SELECT "phone" FROM "Students" WHERE "phone" = :phone LIMIT 1;`,
+                {
+                    replacements: { phone },
+                    type: sequelize.QueryTypes.SELECT
+                }
+            );
+
+            if (phoneExist) {
+                return res.status(400).json({
+                    status: 'error',
+                    error: true,
+                    message: 'លេខទូរសព្ទនេះមានរួចហើយ',
+                });
+            }
+
+            // 5) Get last student ID
             const [lastStudent] = await sequelize.query(
-                'SELECT "stu_id" FROM "Students" ORDER BY "createdAt" DESC LIMIT 1;',
-                {type: sequelize.QueryTypes.SELECT}
+                `SELECT "stu_id" FROM "Students" ORDER BY "createdAt" DESC LIMIT 1;`,
+                { type: sequelize.QueryTypes.SELECT }
             );
 
             let nextId = 1;
             if (lastStudent) {
                 nextId = lastStudent.stu_id + 1;
             }
-            /**
-             * End:: Get last student ID (stu_id)
-             */
 
-            /**
-             * Begin:: Insert new student record
-             */
+            // 6) Insert student
             await sequelize.query(
                 `
-                INSERT INTO "Students" 
-                ("stu_id", "first_name", "last_name", "dob", "phone", "email", "gender", "age", "status", "createdAt", "updatedAt")
-                VALUES (:stu_id, :first_name, :last_name, :dob, :phone, :email, :gender, :age, :status, NOW(), NOW());
-                `,
+            INSERT INTO "Students" 
+            ("stu_id", "first_name", "last_name", "dob", "phone", "email", "gender", "age", "status", "createdAt", "updatedAt")
+            VALUES (:stu_id, :first_name, :last_name, :dob, :phone, :email, :gender, :age, :status, NOW(), NOW());
+            `,
                 {
                     replacements: {
                         stu_id: nextId,
@@ -101,44 +119,28 @@ module.exports = {
                         gender,
                         age,
                         status,
-                    },
+                    }
                 }
             );
-            /**
-             * End:: Insert new student record
-             */
 
-            /**
-             * Begin:: Fetch inserted student
-             */
+            // 7) Fetch inserted student
             const [student] = await sequelize.query(
-                'SELECT * FROM "Students" WHERE "stu_id" = :stu_id;',
+                `SELECT * FROM "Students" WHERE "stu_id" = :stu_id;`,
                 {
-                    replacements: {stu_id: nextId},
-                    type: sequelize.QueryTypes.SELECT,
+                    replacements: { stu_id: nextId },
+                    type: sequelize.QueryTypes.SELECT
                 }
             );
-            /**
-             * End:: Fetch inserted student
-             */
 
-            /**
-             * Begin:: Return success response
-             */
+            // 8) Success
             return res.status(201).json({
                 status: 'success',
                 error: false,
                 message: 'បន្ថែមសិស្សជោគជ័យ',
                 data: student,
             });
-            /**
-             * End:: Return success response
-             */
 
         } catch (error) {
-            /**
-             * Begin:: Catch and handle error
-             */
             console.error('Create student error:', error);
             return res.status(500).json({
                 status: 'error',
@@ -146,9 +148,6 @@ module.exports = {
                 message: 'មានបញ្ហា ខណៈពេលបន្ថែមសិស្ស',
                 details: error.message,
             });
-            /**
-             * End:: Catch and handle error
-             */
         }
     },
     /**

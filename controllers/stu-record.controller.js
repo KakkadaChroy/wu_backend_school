@@ -99,6 +99,7 @@ module.exports = {
             let whereClause = 'WHERE 1=1';
             const replacements = {};
 
+            /** SEARCH */
             if (search) {
                 whereClause += `
                 AND (
@@ -106,10 +107,13 @@ module.exports = {
                     OR LOWER(s.last_name) LIKE :search
                     OR LOWER(m.major_name) LIKE :search
                     OR LOWER(g.grade_name) LIKE :search
-                )`;
-                replacements.search = `%${search.toLowerCase()}%`;
+                    OR CAST(s.stu_id AS TEXT) ILIKE :search
+                )
+            `;
+                replacements.search = `%${search}%`;
             }
 
+            /** FILTERS */
             if (major_id) {
                 whereClause += ' AND sr.major_id = :major_id';
                 replacements.major_id = major_id;
@@ -127,6 +131,7 @@ module.exports = {
                 replacements.schedule_id = schedule_id;
             }
 
+            /** DATE RANGE */
             if (startDate && endDate) {
                 const start = moment(startDate.trim(), 'DD-MMM-YYYY').startOf('day').toISOString();
                 const end = moment(endDate.trim(), 'DD-MMM-YYYY').endOf('day').toISOString();
@@ -136,6 +141,7 @@ module.exports = {
                 replacements.end = end;
             }
 
+            /** MAIN QUERY */
             const query = `
             SELECT 
                 sr.id AS record_id,
@@ -146,19 +152,18 @@ module.exports = {
                 sr.schedule_id,
                 sr."createdAt",
                 sr."updatedAt",
+                
                 s.id AS student_id,
                 s.stu_id AS student_stu_id,
                 s.first_name,
                 s.last_name,
-                s.status AS status,
-                m.id AS major_id,
+                s.status,
+
                 m.major_name,
-                g.id AS grade_id,
                 g.grade_name,
-                c.id AS course_id,
                 c.name AS course_name,
-                sch.id AS schedule_id,
                 sch.schedule_list
+
             FROM "StudentRecords" sr
             JOIN "Students" s ON sr.stu_id = s.id
             JOIN "Majors" m ON sr.major_id = m.id
@@ -170,6 +175,7 @@ module.exports = {
             LIMIT :limit OFFSET :offset;
         `;
 
+            /** COUNT QUERY — MUST MATCH SAME WHERE CLAUSE */
             const countQuery = `
             SELECT COUNT(*) AS total
             FROM "StudentRecords" sr
@@ -181,7 +187,8 @@ module.exports = {
             ${whereClause};
         `;
 
-            const [records] = await Promise.all([
+            /** RUN BOTH QUERIES */
+            const [records, [countResult]] = await Promise.all([
                 sequelize.query(query, {
                     replacements: { ...replacements, limit: parseInt(size), offset: parseInt(offset) },
                     type: sequelize.QueryTypes.SELECT,
@@ -192,17 +199,13 @@ module.exports = {
                 }),
             ]);
 
-            const [totalResult] = await sequelize.query(
-                `SELECT COUNT(*) AS total FROM "Schedules";`,
-                { type: sequelize.QueryTypes.SELECT }
-            );
-            const total = parseInt(totalResult.total);
-
+            const total = parseInt(countResult.total);
             const totalPage = Math.ceil(total / size);
 
+            /** FORMAT OUTPUT */
             const formattedRecords = records.map(r => ({
                 id: r.record_id,
-                stu_id: r.student_id,
+                stu_id: r.student_stu_id,
                 first_name: r.first_name,
                 last_name: r.last_name,
                 major: r.major_name,
